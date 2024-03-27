@@ -3,10 +3,12 @@ package com.example.snake;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
@@ -15,6 +17,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import java.io.IOException;
+import android.graphics.Bitmap;
 
 class SnakeGame extends SurfaceView implements Runnable{
 
@@ -48,11 +51,26 @@ class SnakeGame extends SurfaceView implements Runnable{
     // And an apple
     private Apple mApple;
 
+    private Bitmap mBackgroundimage;
+
+    private Typeface mCustomFont;
 
     // This is the constructor method that gets called
     // from SnakeActivity
     public SnakeGame(Context context, Point size) {
         super(context);
+
+        //Load custom font
+        //mCustomFont = getResources().getFont(R.font.teh_and_kopi);
+
+        // Load grass background
+        mBackgroundimage = BitmapFactory
+                .decodeResource(context.getResources(),
+                        R.drawable.grass);
+
+        // Scale grass background to size
+        mBackgroundimage = Bitmap
+                .createScaledBitmap(mBackgroundimage, size.x, size.y, false);
 
         // Work out how many pixels each block is
         int blockSize = size.x / NUM_BLOCKS_WIDE;
@@ -200,11 +218,12 @@ class SnakeGame extends SurfaceView implements Runnable{
         if (mSurfaceHolder.getSurface().isValid()) {
             mCanvas = mSurfaceHolder.lockCanvas();
 
-            // Fill the screen with a color
-            mCanvas.drawColor(Color.argb(255, 26, 128, 182));
+            // Set screen with grass background
+            mCanvas.drawBitmap(mBackgroundimage, 0, 0, null);
 
             // Set the size and color of the mPaint for the text
             mPaint.setColor(Color.argb(255, 255, 255, 255));
+            //mPaint.setTypeface(mCustomFont);
             mPaint.setTextSize(120);
 
             // Draw the score
@@ -226,7 +245,14 @@ class SnakeGame extends SurfaceView implements Runnable{
                 //mCanvas.drawText("Tap To Play!", 200, 700, mPaint);
                 mCanvas.drawText(getResources().
                                 getString(R.string.tap_to_play),
-                        200, 700, mPaint);
+                        400, 600, mPaint);
+
+                //Names top right corner
+                mPaint.setTextSize(80);
+                mPaint.setColor(Color.argb(255, 0, 0, 0));
+                mCanvas.drawText(
+                        "By Steven Ngo and Jaspreet Singh ", 950, 100, mPaint)
+                ;
             }
 
 
