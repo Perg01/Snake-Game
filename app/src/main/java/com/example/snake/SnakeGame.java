@@ -3,10 +3,12 @@ package com.example.snake;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Typeface;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
@@ -15,6 +17,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import java.io.IOException;
+import android.graphics.Bitmap;
 
 class SnakeGame extends SurfaceView implements Runnable{
 
@@ -48,11 +51,40 @@ class SnakeGame extends SurfaceView implements Runnable{
     // And an apple
     private Apple mApple;
 
+    private Bitmap mBackgroundimage;
+    private Bitmap mButton;
+    private Point mSavedSnakePosition;
+    private Point mSavedApplePosition;
+    private int mSavedScore;
+
+
+    private Typeface mCustomFont;
 
     // This is the constructor method that gets called
     // from SnakeActivity
     public SnakeGame(Context context, Point size) {
         super(context);
+
+        //Load custom font
+        //mCustomFont = getResources().getFont(R.font.teh_and_kopi);
+
+        // Load grass background
+        mBackgroundimage = BitmapFactory
+                .decodeResource(context.getResources(),
+                        R.drawable.grass);
+
+        // Scale grass background to size
+        mBackgroundimage = Bitmap
+                .createScaledBitmap(mBackgroundimage, size.x, size.y, false);
+
+        //Load pause button
+        mButton = BitmapFactory
+                .decodeResource(context.getResources(),
+                        R.drawable.pause);
+
+        //Scale button to size
+        mButton = Bitmap
+                .createScaledBitmap(mButton, 100, 100, true);
 
         // Work out how many pixels each block is
         int blockSize = size.x / NUM_BLOCKS_WIDE;
@@ -200,11 +232,17 @@ class SnakeGame extends SurfaceView implements Runnable{
         if (mSurfaceHolder.getSurface().isValid()) {
             mCanvas = mSurfaceHolder.lockCanvas();
 
-            // Fill the screen with a color
-            mCanvas.drawColor(Color.argb(255, 26, 128, 182));
+            // Set screen with grass background
+            mCanvas.drawBitmap(mBackgroundimage, 0, 0, null);
+
+            //Location of pause button
+            int pauseButtonX = 2100;
+            int pauseButtonY = 900;
+            mCanvas.drawBitmap(mButton, pauseButtonX,pauseButtonY, mPaint);
 
             // Set the size and color of the mPaint for the text
             mPaint.setColor(Color.argb(255, 255, 255, 255));
+            //mPaint.setTypeface(mCustomFont);
             mPaint.setTextSize(120);
 
             // Draw the score
@@ -222,11 +260,15 @@ class SnakeGame extends SurfaceView implements Runnable{
                 mPaint.setTextSize(250);
 
                 // Draw the message
-                // We will give this an international upgrade soon
-                //mCanvas.drawText("Tap To Play!", 200, 700, mPaint);
                 mCanvas.drawText(getResources().
                                 getString(R.string.tap_to_play),
-                        200, 700, mPaint);
+                        400, 600, mPaint);
+
+                //Names top right corner
+                mPaint.setTextSize(80);
+                mPaint.setColor(Color.argb(255, 0, 0, 0));
+                mCanvas.drawText(
+                        "By Steven Ngo and Jaspreet Singh ", 950, 100, mPaint);
             }
 
 
@@ -237,24 +279,39 @@ class SnakeGame extends SurfaceView implements Runnable{
 
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
+        int touchX = (int) motionEvent.getX();
+        int touchY = (int) motionEvent.getY();
+
         switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_UP:
                 if (mPaused) {
-                    mPaused = false;
-                    newGame();
-
-                    // Don't want to process snake direction for this tap
-                    return true;
+                    // If the game is paused, and the touch is anywhere
+                    // Resume the game and start a new game
+                    if (mPlaying) {
+                        mPaused = false;
+                        newGame();
+                        return true; // Consume the touch event
+                    }
+                } else {
+                    // If the game is not paused, and the touch is within the pause button area
+                    // Pause the game
+                    if (touchX >= 2100 && touchX <= 2200 &&
+                            touchY >= 900 && touchY <= 1000) {
+                        mPaused = true;
+                        return true; // Consume the touch event
+                    }
                 }
 
+                // If the game is not paused, and the touch is not on the pause button
                 // Let the Snake class handle the input
-                mSnake.switchHeading(motionEvent);
+                if (!mPaused) {
+                    mSnake.switchHeading(motionEvent);
+                }
                 break;
-
             default:
                 break;
-
         }
+
         return true;
     }
 
